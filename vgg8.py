@@ -328,9 +328,11 @@ print(f'\n{datetime.now().time().replace(microsecond=0)} --- '
 
 criterion = CrossEntropyLoss()
 
-optimizer = AnalogSGD(list(model.parameters())+[alpha], lr=0.01)
-#optimizer = AnalogSGD(list(model.parameters()), lr=0.01)
+optimizer = AnalogSGD(list(model.parameters()), lr=0.01, momentum=0.9, weight_decay=5e-4)
+MILESTONES = [50, 80, 100]
+train_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=MILESTONES, gamma=0.2) #learning rate decay
 optimizer.regroup_param_groups(model)
+
 
 def train_step(train_data, model, criterion, optimizer):
   total_loss = 0
@@ -367,6 +369,7 @@ print_every=1
 # Train model
 for epoch in range(0, epochs):
     # Train_step
+    train_scheduler.step(epoch)
     train_loss = train_step(train_data, model, criterion, optimizer)
     train_losses.append(train_loss)
 
